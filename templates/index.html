@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test Dashboard</title>
+</head>
+<body>
+    <h1>Résultats des tests API</h1>
+
+    <table border="1">
+        <tr>
+            <th>Test</th>
+            <th>Résultat</th>
+        </tr>
+
+        {% for test in results %}
+        <tr>
+            <td>{{ test.test }}</td>
+            <td>{{ test.result }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
