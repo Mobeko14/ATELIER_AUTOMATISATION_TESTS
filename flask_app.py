@@ -1,16 +1,42 @@
-from flask import Flask, render_template_string, render_template, jsonify, request, redirect, url_for, session
-from flask import render_template
-from flask import json
-from urllib.request import urlopen
-from werkzeug.utils import secure_filename
-import sqlite3
+from flask import Flask, render_template
+import requests
+import time
 
 app = Flask(__name__)
 
-@app.get("/")
-def consignes():
-     return render_template('consignes.html')
+def run_tests():
+    url = "https://api.agify.io?name=edouard"
+    
+    results = []
 
-if __name__ == "__main__":
-    # utile en local uniquement
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # Test 1 : status
+    r = requests.get(url)
+    results.append({
+        "test": "Status Code",
+        "result": "OK" if r.status_code == 200 else "FAIL"
+    })
+
+    # Test 2 : contenu JSON
+    data = r.json()
+    results.append({
+        "test": "JSON contains age",
+        "result": "OK" if "age" in data else "FAIL"
+    })
+
+    # Test 3 : temps de réponse
+    start = time.time()
+    requests.get(url)
+    duration = time.time() - start
+
+    results.append({
+        "test": "Response time < 1s",
+        "result": "OK" if duration < 1 else "FAIL"
+    })
+
+    return results
+
+
+@app.route("/")
+def home():
+    results = run_tests()
+    return render_template("index.html", results=results)
