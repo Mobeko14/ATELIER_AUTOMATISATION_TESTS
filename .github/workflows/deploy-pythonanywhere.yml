@@ -10,9 +10,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Récupération du code
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # 3️⃣ Installation dépendances
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 4️⃣ Lancer les tests (CI)
+      - name: Run tests
+        run: |
+          pytest -q
+
+      # 5️⃣ Vérification des secrets
       - name: Validate required secrets
         shell: bash
         run: |
@@ -22,6 +41,7 @@ jobs:
           : "${{ secrets.PA_TARGET_DIR }}"
           : "${{ secrets.PA_WEBAPP_DOMAIN }}"
 
+      # 6️⃣ Déploiement (CD)
       - name: Upload all files recursively (dirs auto-created by Files API)
         shell: bash
         run: |
@@ -31,18 +51,15 @@ jobs:
           TARGET_DIR="${{ secrets.PA_TARGET_DIR }}"
           DOMAIN="${{ secrets.PA_WEBAPP_DOMAIN }}"
 
-          # Optional: set PA_HOST secret to "eu.pythonanywhere.com" if your account is on EU.
           HOST="${{ secrets.PA_HOST }}"
           if [[ -z "${HOST}" ]]; then HOST="www.pythonanywhere.com"; fi
 
           echo "Using PythonAnywhere host: ${HOST}"
           echo "Target directory: ${TARGET_DIR}"
 
-          # Upload every file; remote directories are created automatically by the Files API.
           while IFS= read -r -d '' file; do
             rel="${file#./}"
 
-            # Exclusions (adjust to taste)
             case "$rel" in
               .git/*|.github/*|.venv/*|__pycache__/*|node_modules/*) continue ;;
               *.pyc|.DS_Store) continue ;;
